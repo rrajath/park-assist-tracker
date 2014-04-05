@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.*;
 import com.uic.ParkAssistTracker.R;
 import com.uic.ParkAssistTracker.util.CustomGridViewAdapter;
+import com.uic.ParkAssistTracker.util.Point;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,8 +52,12 @@ public class TrackerActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 // Calculating the grid co-ordinates
+                Point parkCell = new Point();
                 int x = position / GRID_COLUMNS;
                 int y = position % GRID_COLUMNS;
+
+                parkCell.setX(x);
+                parkCell.setY(y);
 
                 // PNPPNPPNPPNP
                 switch (y) {
@@ -64,20 +69,24 @@ public class TrackerActivity extends Activity {
                     case 8:
                     case 9:
                     case 11:
-                        int[] destinationPoint = getNearestNavCell(x, y);
-                        int[] startPoint;   // Get the value of this from GeoFencing
-                        Toast.makeText(getApplicationContext(), "(" + destinationPoint[0] + "," + destinationPoint[1] + ")", Toast.LENGTH_LONG).show();
+                        Point destinationPoint = getNearestNavCell(parkCell);
+                        Point startPoint;   // Get the value of this from GeoFencing
+                        Toast.makeText(getApplicationContext(), "(" + destinationPoint.getX() + "," + destinationPoint.getY() + ")", Toast.LENGTH_LONG).show();
                 }
             }
         });
     }
 
-    public int[] getNearestNavCell(int x, int y) {
+    public Point getNearestNavCell(Point parkCell) {
         int navX = 0;
         int navY;
-        int[] nearestNavCell = new int[2];
         String direction = "";
         int count = 0;
+
+        Point nearestNavCell = new Point();
+
+        int x = parkCell.getX();
+        int y = parkCell.getY();
 
         int[] xArray = {1, 5, 9, 13, 17, 21, 25, 29};
 
@@ -101,7 +110,7 @@ public class TrackerActivity extends Activity {
             navX = xArray[count - 1];
         }
 
-        nearestNavCell[0] = navX;
+        nearestNavCell.setX(navX);
 
         // Compute y co-ordinate
         if (y % 3 == 0) {
@@ -109,7 +118,7 @@ public class TrackerActivity extends Activity {
         } else {
             navY = y - 1;
         }
-        nearestNavCell[1] = navY;
+        nearestNavCell.setY(navY);
 
         return nearestNavCell;
     }
