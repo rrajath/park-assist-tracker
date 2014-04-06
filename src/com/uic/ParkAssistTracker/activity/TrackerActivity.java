@@ -22,6 +22,7 @@ public class TrackerActivity extends Activity {
     static String[] numbers = new String[336];
     int k =0;
     int count =1;
+    ArrayList<String> routeStrings = new ArrayList<String>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,12 +53,10 @@ public class TrackerActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 // Calculating the grid co-ordinates
-                Point parkCell = new Point();
                 int x = position / GRID_COLUMNS;
                 int y = position % GRID_COLUMNS;
 
-                parkCell.setX(x);
-                parkCell.setY(y);
+                Point parkCell = new Point(x, y);
 
                 // PNPPNPPNPPNP
                 switch (y) {
@@ -69,33 +68,37 @@ public class TrackerActivity extends Activity {
                     case 8:
                     case 9:
                     case 11:
+                        // Fix the start and destination points
                         Point destinationPoint = getNearestNavCell(parkCell);
-                        Point startPoint;   // Get the value of this from GeoFencing
-                        Toast.makeText(getApplicationContext(), "(" + destinationPoint.getX() + "," + destinationPoint.getY() + ")", Toast.LENGTH_LONG).show();
+                        Point startPoint = new Point(26, 10);   // Get the value of this from GeoFencing
+                        routeStrings.clear();
+                        // Calculate the route for start and end points
+                        calculateRoute(startPoint, destinationPoint);
+                        Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
+
                 }
             }
         });
     }
 
+    /*
+     * Description: Get the nearest navigation cell with respect to the selected parking cell
+     * Params: parking cell selected by the user
+     * Returns: Navigation Cell
+     */
     public Point getNearestNavCell(Point parkCell) {
         int navX = 0;
         int navY;
         String direction = "";
         int count = 0;
 
-        Point nearestNavCell = new Point();
-
         int x = parkCell.getX();
         int y = parkCell.getY();
 
-        int[] xArray = {1, 5, 9, 13, 17, 21, 25, 29};
+        int[] xArray = {1, 5, 9, 13, 17, 21, 25, 26};
 
         // Calculate direction
-        if (y > 5) {
-            direction = "North";
-        } else {
-            direction = "South";
-        }
+        direction = getDirection(x, y);
 
         // Compute x co-ordinate
         for (int aXArray : xArray) {
@@ -110,24 +113,122 @@ public class TrackerActivity extends Activity {
             navX = xArray[count - 1];
         }
 
-        nearestNavCell.setX(navX);
-
         // Compute y co-ordinate
         if (y % 3 == 0) {
             navY = y + 1;
         } else {
             navY = y - 1;
         }
-        nearestNavCell.setY(navY);
 
-        return nearestNavCell;
+        return new Point(navX, navY, direction);
     }
 
-    public void calculateRoute() {
-        // Get start point
-        // Get destination point
-        // Maintain an array of intersection points
+    /*
+     * Description: Return the direction of the given coordinates
+     * Params: x and y coordinate
+     * Returns: Direction for that coordinate
+     */
+    public String getDirection(int x, int y) {
+        String direction;
+        if (x == 1) {
+            direction = "west";
+        } else if (y > 5) {
+            direction = "north";
+        } else {
+            direction = "south";
+        }
+
+        return direction;
+    }
+
+    /*
+     * Description: Generate the Route String
+     * Params: start and end points
+     * Return: Route string
+     */
+    public String generateRouteString(Point start, Point end) {
+        // Helper method to calculate distance
+        // calculateDistance
+        // Direction = start direction
+        String direction = start.getDirection();
+        int distance;
+        int lastElement;
+        if (direction.equals("southwest")) {
+            direction = "west";
+        }
+
+        distance = calculateDistance(start, end);
+
+        String route = "Go " + distance + " meters " + direction + "\n";
+
+        if (routeStrings.size() > 0) {
+            lastElement = routeStrings.size()-1;
+            String lastRoute = routeStrings.get(lastElement);
+            String[] routeElements = lastRoute.split(" ");
+            String dir = routeElements[routeElements.length - 1].trim();
+            int previousDistance = Integer.parseInt(routeElements[1]);
+
+            if (dir.equals(direction)) {
+                distance += previousDistance;
+                route = lastRoute.replace(String.valueOf(previousDistance), String.valueOf(distance));
+                routeStrings.remove(lastElement);
+            }
+        }
+        return route;
+    }
+
+    /*
+     * Description: Calculate distance depending on the distance between start and end cell
+     * Params: start and end points
+     * Returns: distance between start and end points
+     */
+    public int calculateDistance(Point start, Point end) {
+        if (start.getX() == end.getX()) {
+            return Math.abs(end.getY() - start.getY()) * 3;
+        } else {
+            return Math.abs(end.getX() - start.getX()) * 3;
+        }
+    }
+
+    /*
+     * Description: Calculate the complete route between the start and destination points
+     * Params: Start and destination points
+     * Returns: nothing
+     */
+    public void calculateRoute(Point start, Point dest) {
+
+        Point[] checkpointArray = {
+                new Point(26, 10, "north"),
+                new Point(1, 10, "west"),
+                new Point(1, 7, "west"),
+                new Point(1, 4, "southwest"),
+                new Point(1, 1, "south"),
+                new Point(26, 1, "east"),
+                new Point(26, 4, "east"),
+                new Point(26, 7, "northeast")
+        };
+
         // Go through each intersection point to check whether they are in line with the destination point
-        // Use helper methods when needed
+        // WHILE LOOP
+        // check direction of destination point with checkpoint
+        // if true, end it
+        // else, getNextCheckpoint()
+
+        int counter = 0;
+        while (true) {
+            Point currentPoint = checkpointArray[counter];
+            // check if destination point is in the same co-ordinate
+            if (dest.getY() == currentPoint.getY() && currentPoint.getDirection().contains(dest.getDirection())) {
+                    int distance = calculateDistance(currentPoint, dest);
+                    String route = "Go " + distance + " meters " + dest.getDirection() + "\n";
+                    routeStrings.add(route);
+                    break;
+            } else {
+                // Generate Route String and add it to array
+                Point nextCheckpoint = checkpointArray[counter + 1];
+                routeStrings.add(generateRouteString(currentPoint, nextCheckpoint));
+            }
+            counter++;
+        }
     }
 }
