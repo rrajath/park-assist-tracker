@@ -1,6 +1,7 @@
 package com.uic.ParkAssistTracker.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -74,7 +75,10 @@ public class TrackerActivity extends Activity {
                         routeStrings.clear();
                         // Calculate the route for start and end points
                         calculateRoute(startPoint, destinationPoint);
-                        Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(TrackerActivity.this , DirectionActivity.class);
+                        intent.putExtra("directionList" , routeStrings);
+                        startActivity(intent);
+                       // Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
 
                 }
             }
