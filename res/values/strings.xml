@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ParkAssistTracker</string>
+    <!--Manage DB popup-->
+    <string name="tvClearTables">Clear Database</string>
+    <string name="clear_seq_button">Clear Sequence</string>
+    <string name="clear_tables_button">Clear Table</string>
+    <string name="view_db_button">View DB</string>
+    <string name="refresh_db_button">Refresh DB</string>
+    <string name="load_park_cell_button">Load Parking Cell Data</string>
+    <string name="details_button">Details</string>
+    <string name="tvX">X</string>
+    <string name="tvY">Y</string>
+
+    <!--Tables dropdown-->
+    <string-array name="tables">
+        <item>fingerprint_table</item>
+        <item>navigation_table</item>
+    </string-array>
+
+
+
 </resources>

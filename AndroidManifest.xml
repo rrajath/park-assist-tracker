@@ -17,15 +17,23 @@
         <activity
             android:name=".activity.TrackerActivity"
             android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
+
         </activity>
         <activity
                 android:name=".activity.DirectionActivity"
                 android:theme="@android:style/Theme.Dialog"
                 android:screenOrientation="portrait"/>
-
+        <activity android:name=".activity.IntroActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter> </activity>
+        <activity
+                android:name=".activity.ManageDBActivity"
+                android:screenOrientation="portrait"
+                android:theme="@android:style/Theme.Holo.Light.Dialog"/>
+        <activity
+                android:name=".activity.ViewDBActivity"
+                android:screenOrientation="portrait"/>
     </application>
 </manifest>

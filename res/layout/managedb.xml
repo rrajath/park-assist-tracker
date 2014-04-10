@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/tvClearTables"
+            android:id="@+id/tvClearSeq"
+            android:layout_gravity="center_horizontal"/>
+
+    <Spinner
+            android:layout_width="181dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_tables"
+            android:layout_gravity="center_horizontal"
+            android:spinnerMode="dropdown"/>
+    <Button
+            android:layout_width="122dp"
+            android:layout_height="wrap_content"
+            android:text="ImportDB"
+            android:onClick="readData"
+            android:id="@+id/bImportDB" android:layout_gravity="center_horizontal"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="horizontal"
+                  android:gravity="center"
+                  style="?android:buttonBarStyle"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/clear_seq_button"
+                android:background="?android:attr/selectableItemBackground"
+                android:onClick="clearSequences"
+                android:id="@+id/bClearSeq"
+                style="?android:buttonBarButtonStyle"
+                android:layout_gravity="center_horizontal"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/clear_tables_button"
+                android:onClick="clearTables"
+                android:background="?android:attr/selectableItemBackground"
+                android:id="@+id/bClearTables"
+                style="?android:buttonBarButtonStyle"
+                android:layout_gravity="center_horizontal"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/view_db_button"
+                android:background="?android:attr/selectableItemBackground"
+                android:onClick="viewDB"
+                android:id="@+id/bViewDB"
+                style="?android:buttonBarButtonStyle"
+                android:layout_gravity="center_horizontal"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/refresh_db_button"
+                android:onClick="refreshDB"
+                style="?android:buttonBarButtonStyle"
+                android:id="@+id/bRefreshDB"
+                android:layout_gravity="center_horizontal"/>
+
+    </LinearLayout>
+
+</LinearLayout>
