@@ -1,7 +1,10 @@
 package com.uic.ParkAssistTracker.activity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -24,6 +27,7 @@ public class TrackerActivity extends Activity {
     int k =0;
     int count =1;
     ArrayList<String> routeStrings = new ArrayList<String>();
+    List scanResultsList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +87,52 @@ public class TrackerActivity extends Activity {
                 }
             }
         });
+        getLocation();
     }
+
+
+    public ArrayList<String> singleScan(){
+
+
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiManager.startScan();
+        scanResultsList = wifiManager.getScanResults();
+        ArrayList<String> bssidList = new ArrayList<String>();
+        ArrayList<String> wifiList = new ArrayList<String>();
+
+        String ssid;
+        for(Object aScanResultList: scanResultsList){
+            ScanResult scanResult = (ScanResult)aScanResultList;
+            ssid = scanResult.BSSID + " | " + scanResult.SSID + " | " + scanResult.level;
+            wifiList.add(ssid);
+            bssidList.add(scanResult.BSSID);
+        }
+
+        return  bssidList;
+
+    }
+    public void getLocation(){
+
+     ArrayList<String> bssid = new ArrayList<String>();
+     bssid = singleScan();
+     String query = "";
+     String bssid_query = "";
+
+        for(int i = 0; i < bssid.size();i++){
+
+         if(i == bssid.size()-1){bssid_query =  bssid_query + "'" + bssid.get(i) + "'";}
+         else
+          bssid_query =  bssid_query + "'" + bssid.get(i) + "'" + " ," ;
+
+     }
+        query = "select f.ssid, f.rss, n.x_cord, n.y_cord from fingerprint_table f, navigation_table n where ssid in (" +
+                 bssid_query + ") and  n.fp_id = f.fp_id ;";
+        Toast.makeText(getApplicationContext(), query, Toast.LENGTH_LONG).show();
+
+
+    }
+
+
 
     /*
      * Description: Get the nearest navigation cell with respect to the selected parking cell

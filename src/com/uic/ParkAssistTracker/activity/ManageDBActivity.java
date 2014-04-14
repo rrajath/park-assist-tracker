@@ -3,6 +3,7 @@ package com.uic.ParkAssistTracker.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -42,16 +43,18 @@ public class ManageDBActivity extends Activity {
         datasource.close();
     }
 
-
     //Read the data.This method is called after clicking ImportDb button
     public void readData(View view){
-        int count =0;
+      int count =0;
       table = spinner.getSelectedItem().toString();
+      String filename ;
       if(table.equals("fingerprint_table")){
+
 //          File fpFile = new File("/storage/sdcard/0/Android/data/com.example.ParkAssist/files/fingerprint_table.txt");
           File path = getApplicationContext().getExternalFilesDir(null).getAbsoluteFile().getParentFile();
           String str = path.getParent() + "/com.example.ParkAssist/files";
           File fpFile = new File(str + "/" + table + ".txt");
+
           try{
               Scanner scan = new Scanner(fpFile);
               datasource = new Datasource(this , table);
@@ -72,13 +75,16 @@ public class ManageDBActivity extends Activity {
       }
       else{
 
+
 //          File navFile = new File("/storage/sdcard0/Android/data/com.example.ParkAssist/files/navigation_table.txt");
           File path = getApplicationContext().getExternalFilesDir(null).getAbsoluteFile().getParentFile();
           String str = path.getParent() + "/com.example.ParkAssist/files";
           File navFile = new File(str + "/" + table + ".txt");
 //          File navFile = new File(getApplicationContext().getExternalFilesDir(null).getAbsoluteFile() + "/" + table + ".txt");
-          try {
+
+          try{
               Scanner scan = new Scanner(navFile);
+
               datasource = new Datasource(this , table);
               datasource.open();
               while(scan.hasNextLine()){
@@ -92,13 +98,10 @@ public class ManageDBActivity extends Activity {
           }
           catch(FileNotFoundException ex) {
               ex.printStackTrace();
-
           }
-
       }
 
     }
-
 
     public void clearTables(View view) {
         table = spinner.getSelectedItem().toString();
