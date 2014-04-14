@@ -48,7 +48,10 @@ public class ManageDBActivity extends Activity {
         int count =0;
       table = spinner.getSelectedItem().toString();
       if(table.equals("fingerprint_table")){
-          File fpFile = new File("/storage/sdcard0/Android/data/com.example.ParkAssist/files/fingerprint_table.txt");
+//          File fpFile = new File("/storage/sdcard/0/Android/data/com.example.ParkAssist/files/fingerprint_table.txt");
+          File path = getApplicationContext().getExternalFilesDir(null).getAbsoluteFile().getParentFile();
+          String str = path.getParent() + "/com.example.ParkAssist/files";
+          File fpFile = new File(str + "/" + table + ".txt");
           try{
               Scanner scan = new Scanner(fpFile);
               datasource = new Datasource(this , table);
@@ -69,9 +72,13 @@ public class ManageDBActivity extends Activity {
       }
       else{
 
-          File NavFile = new File("/storage/sdcard0/Android/data/com.example.ParkAssist/files/navigation_table.txt");
-          try{
-              Scanner scan = new Scanner(NavFile);
+//          File navFile = new File("/storage/sdcard0/Android/data/com.example.ParkAssist/files/navigation_table.txt");
+          File path = getApplicationContext().getExternalFilesDir(null).getAbsoluteFile().getParentFile();
+          String str = path.getParent() + "/com.example.ParkAssist/files";
+          File navFile = new File(str + "/" + table + ".txt");
+//          File navFile = new File(getApplicationContext().getExternalFilesDir(null).getAbsoluteFile() + "/" + table + ".txt");
+          try {
+              Scanner scan = new Scanner(navFile);
               datasource = new Datasource(this , table);
               datasource.open();
               while(scan.hasNextLine()){
@@ -83,7 +90,7 @@ public class ManageDBActivity extends Activity {
               scan.close();
               datasource.close();
           }
-          catch(FileNotFoundException ex){
+          catch(FileNotFoundException ex) {
               ex.printStackTrace();
 
           }

@@ -19,12 +19,16 @@
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="match_parent">
-        <TableLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/tab"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content">
+            <TableLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/tab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-        </TableLayout>
+            </TableLayout>
+        </HorizontalScrollView>
     </ScrollView>
 </LinearLayout>
