@@ -2,9 +2,11 @@ package com.uic.ParkAssistTracker.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import com.uic.ParkAssistTracker.entity.Cell;
 import com.uic.ParkAssistTracker.entity.Fingerprint;
 import com.uic.ParkAssistTracker.entity.NavCell;
@@ -252,10 +254,21 @@ public class Datasource {
     public String getCurrentCoordinates(String bssid, int rss) {
         String query = "select x_cord, y_cord from navigation_table " +
                 "where fp_id = (select f.fp_id from fingerprint_table f " +
-                "where f.ssid = '" + bssid + "' order by abs(" + rss + " - rss) limit 1)";
-        Cursor cursor = db.rawQuery(query, null);
-        cursor.moveToFirst();
+                "where f.bssid = '" + bssid + "' order by abs(" + rss + " - rss) limit 1)";
 
-        return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
+
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, null);
+            cursor.moveToFirst();
+        } catch (CursorIndexOutOfBoundsException e) {
+            Log.e("Datasource", e.getMessage());
+        }
+
+        if (cursor != null) {
+            return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
+        } else {
+            return null;
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.uic.ParkAssistTracker.activity;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -24,8 +23,8 @@ public class TrackerActivity extends Activity {
     GridView gridView;
     final int GRID_COLUMNS = 12;
     static String[] numbers = new String[336];
-    int k =0;
-    int count =1;
+    int k = 0;
+    int count = 1;
     ArrayList<String> routeStrings = new ArrayList<String>();
     List scanResultsList;
 
@@ -35,10 +34,10 @@ public class TrackerActivity extends Activity {
         setContentView(R.layout.fingerprintlayout);
 
         for (int i = 0; i < 336; i++) {
-            if((i)-((3*k+1)) == 0){
+            if ((i) - ((3 * k + 1)) == 0) {
                 numbers[i] = "";
                 k++;
-            } else{
+            } else {
                 numbers[i] = String.valueOf(count++);
             }
         }
@@ -78,20 +77,23 @@ public class TrackerActivity extends Activity {
                         Point startPoint = new Point(26, 10);   // Get the value of this from GeoFencing
                         routeStrings.clear();
                         // Calculate the route for start and end points
+/*
                         calculateRoute(startPoint, destinationPoint);
                         Intent intent = new Intent(TrackerActivity.this , DirectionActivity.class);
                         intent.putExtra("directionList" , routeStrings);
                         startActivity(intent);
+*/
+                        getLocation();
                         // Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
 
                 }
             }
         });
-        getLocation();
+//        getLocation();
     }
 
 
-    public HashMap<String, Integer> singleScan(){
+    public HashMap<String, Integer> singleScan() {
 
         WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiManager.startScan();
@@ -99,66 +101,68 @@ public class TrackerActivity extends Activity {
 
         HashMap<String, Integer> hmOnlineScan = new HashMap<String, Integer>();
 
-        for(Object aScanResultList: scanResultsList){
-            ScanResult scanResult = (ScanResult)aScanResultList;
+        for (Object aScanResultList : scanResultsList) {
+            ScanResult scanResult = (ScanResult) aScanResultList;
             hmOnlineScan.put(scanResult.BSSID, scanResult.level);
         }
 
-        return  hmOnlineScan;
+        return hmOnlineScan;
     }
 
-    public void getLocation(){
+    
+    public void getLocation() {
         HashMap<String, Integer> hmOnlineScan;
-        HashMap<String, Integer> hmCordMap;
-        HashMap<String, Integer>  sortedMap;
+        HashMap<String, Integer> sortedMap;
         hmOnlineScan = singleScan();
 
         Datasource datasource = new Datasource(getApplicationContext(), "fingerprint_table");
         datasource.open();
+        HashMap<String, Integer> hmCordMap = new HashMap<String, Integer>();
         for (Map.Entry<String, Integer> entry : hmOnlineScan.entrySet()) {
             String xy = datasource.getCurrentCoordinates(entry.getKey(), entry.getValue());
-             hmCordMap = new HashMap<String, Integer>();
             int value;
             try {
-                if (hmCordMap.containsKey(xy)) {
-                    value = hmCordMap.get(xy);
-                    hmCordMap.put(xy, value + 1);
-                } else {
-                    hmCordMap.put(xy, 1);
+                if (xy != null) {
+
+                    if (hmCordMap.containsKey(xy)) {
+                        value = hmCordMap.get(xy);
+                        hmCordMap.put(xy, value + 1);
+                    } else {
+                        hmCordMap.put(xy, 1);
+                    }
                 }
             } catch (Exception e) {
                 Log.e("hmCordMap", "hmCordMap screwed up");
             }
         }
-       sortedMap = sortByComparator(hmCordMap);
+        datasource.close();
+        sortedMap = (HashMap<String, Integer>) sortByComparator(hmCordMap);
         Object firstKey = sortedMap.keySet().toArray()[0];
         Toast.makeText(getApplicationContext(), firstKey.toString(), Toast.LENGTH_LONG).show();
     }
 
-    //Putting the map in Linkedlist and sort the Linkedlist using comparator
 
-    private  static Map<String ,Integer>  sortByComparator(Map<String,Integer> unsortMap){
-       //Putting the map in linkedlist
+    //Putting the map in Linkedlist and sort the Linkedlist using comparator
+    private static Map<String, Integer> sortByComparator(Map<String, Integer> unsortMap) {
+        //Putting the map in linkedlist
         List<Map.Entry<String, Integer>> cordList = new LinkedList<Map.Entry<String, Integer>>(unsortMap.entrySet());
-       //Sorting the list on values
-        Collections.sort(cordList , new Comparator<Map.Entry<String, Integer>>() {
+        //Sorting the list on values
+        Collections.sort(cordList, new Comparator<Map.Entry<String, Integer>>() {
             @Override
             public int compare(Map.Entry<String, Integer> lhs, Map.Entry<String, Integer> rhs) {
-                if(lhs.getValue()>rhs.getValue()){
-                    return 1; }
-               else if (lhs.getValue()<rhs.getValue()){
+                if (lhs.getValue() < rhs.getValue()) {
+                    return 1;
+                } else if (lhs.getValue() > rhs.getValue()) {
                     return -1;
-                }
-               else    return 0;
+                } else return 0;
             }
         });
 
         Map<String, Integer> sortedMap = new LinkedHashMap<String, Integer>();
-        for (Map.Entry<String, Integer> entry : cordList)
-        {
+        for (Map.Entry<String, Integer> entry : cordList) {
             sortedMap.put(entry.getKey(), entry.getValue());
         }
-       return sortedMap;
+        return sortedMap;
     }
 
 
@@ -204,6 +208,7 @@ public class TrackerActivity extends Activity {
         return new Point(navX, navY, direction);
     }
 
+
     /*
      * Description: Return the direction of the given coordinates
      * Params: x and y coordinate
@@ -221,6 +226,7 @@ public class TrackerActivity extends Activity {
 
         return direction;
     }
+
 
     /*
      * Description: Generate the Route String
@@ -243,7 +249,7 @@ public class TrackerActivity extends Activity {
         String route = "Go " + distance + " meters " + direction + "\n";
 
         if (routeStrings.size() > 0) {
-            lastElement = routeStrings.size()-1;
+            lastElement = routeStrings.size() - 1;
             String lastRoute = routeStrings.get(lastElement);
             String[] routeElements = lastRoute.split(" ");
             String dir = routeElements[routeElements.length - 1].trim();
@@ -258,6 +264,7 @@ public class TrackerActivity extends Activity {
         return route;
     }
 
+
     /*
      * Description: Calculate distance depending on the distance between start and end cell
      * Params: start and end points
@@ -270,6 +277,7 @@ public class TrackerActivity extends Activity {
             return Math.abs(end.getX() - start.getX()) * 3;
         }
     }
+
 
     /*
      * Description: Calculate the complete route between the start and destination points
