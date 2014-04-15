@@ -6,15 +6,15 @@ import android.content.Intent;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import com.uic.ParkAssistTracker.R;
+import com.uic.ParkAssistTracker.database.Datasource;
 import com.uic.ParkAssistTracker.util.CustomGridViewAdapter;
 import com.uic.ParkAssistTracker.util.Point;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class TrackerActivity extends Activity {
     /**
@@ -82,7 +82,7 @@ public class TrackerActivity extends Activity {
                         Intent intent = new Intent(TrackerActivity.this , DirectionActivity.class);
                         intent.putExtra("directionList" , routeStrings);
                         startActivity(intent);
-                       // Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
+                        // Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -91,47 +91,44 @@ public class TrackerActivity extends Activity {
     }
 
 
-    public ArrayList<String> singleScan(){
-
+    public HashMap<String, Integer> singleScan(){
 
         WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiManager.startScan();
         scanResultsList = wifiManager.getScanResults();
-        ArrayList<String> bssidList = new ArrayList<String>();
-        ArrayList<String> wifiList = new ArrayList<String>();
 
-        String ssid;
+        HashMap<String, Integer> hmOnlineScan = new HashMap<String, Integer>();
+
         for(Object aScanResultList: scanResultsList){
             ScanResult scanResult = (ScanResult)aScanResultList;
-            ssid = scanResult.BSSID + " | " + scanResult.SSID + " | " + scanResult.level;
-            wifiList.add(ssid);
-            bssidList.add(scanResult.BSSID);
+            hmOnlineScan.put(scanResult.BSSID, scanResult.level);
         }
 
-        return  bssidList;
-
+        return  hmOnlineScan;
     }
+
     public void getLocation(){
+        HashMap<String, Integer> hmOnlineScan;
+        hmOnlineScan = singleScan();
 
-     ArrayList<String> bssid = new ArrayList<String>();
-     bssid = singleScan();
-     String query = "";
-     String bssid_query = "";
-
-        for(int i = 0; i < bssid.size();i++){
-
-         if(i == bssid.size()-1){bssid_query =  bssid_query + "'" + bssid.get(i) + "'";}
-         else
-          bssid_query =  bssid_query + "'" + bssid.get(i) + "'" + " ," ;
-
-     }
-        query = "select f.ssid, f.rss, n.x_cord, n.y_cord from fingerprint_table f, navigation_table n where ssid in (" +
-                 bssid_query + ") and  n.fp_id = f.fp_id ;";
-        Toast.makeText(getApplicationContext(), query, Toast.LENGTH_LONG).show();
-
-
+        Datasource datasource = new Datasource(getApplicationContext(), "fingerprint_table");
+        datasource.open();
+        for (Map.Entry<String, Integer> entry : hmOnlineScan.entrySet()) {
+            String xy = datasource.getCurrentCoordinates(entry.getKey(), entry.getValue());
+            HashMap<String, Integer> hmCordMap = new HashMap<String, Integer>();
+            int value;
+            try {
+                if (hmCordMap.containsKey(xy)) {
+                    value = hmCordMap.get(xy);
+                    hmCordMap.put(xy, value + 1);
+                } else {
+                    hmCordMap.put(xy, 1);
+                }
+            } catch (Exception e) {
+                Log.e("hmCordMap", "hmCordMap screwed up");
+            }
+        }
     }
-
 
 
     /*
@@ -272,10 +269,10 @@ public class TrackerActivity extends Activity {
             Point currentPoint = checkpointArray[counter];
             // check if destination point is in the same co-ordinate
             if (dest.getY() == currentPoint.getY() && currentPoint.getDirection().contains(dest.getDirection())) {
-                    int distance = calculateDistance(currentPoint, dest);
-                    String route = "Go " + distance + " meters " + dest.getDirection() + "\n";
-                    routeStrings.add(route);
-                    break;
+                int distance = calculateDistance(currentPoint, dest);
+                String route = "Go " + distance + " meters " + dest.getDirection() + "\n";
+                routeStrings.add(route);
+                break;
             } else {
                 // Generate Route String and add it to array
                 Point nextCheckpoint = checkpointArray[counter + 1];

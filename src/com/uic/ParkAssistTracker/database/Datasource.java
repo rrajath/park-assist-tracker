@@ -248,4 +248,14 @@ public class Datasource {
 
         return navCell;
     }
+
+    public String getCurrentCoordinates(String bssid, int rss) {
+        String query = "select x_cord, y_cord from navigation_table " +
+                "where fp_id = (select f.fp_id from fingerprint_table f " +
+                "where f.ssid = '" + bssid + "' order by abs(" + rss + " - rss) limit 1)";
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
+    }
 }
