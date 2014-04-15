@@ -21,7 +21,7 @@ public class NavCellDBHelper extends SQLiteOpenHelper {
                     "FOREIGN KEY(fp_id) REFERENCES fingerprint_table(fp_id));";
 
 
-    public NavCellDBHelper(Context context) {
+    public  NavCellDBHelper(Context context) {
         super(context, FingerprintDBHelper.DATABASE_NAME, null, FingerprintDBHelper.DATABASE_VERSION);
     }
 

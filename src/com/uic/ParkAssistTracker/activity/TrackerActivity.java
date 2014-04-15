@@ -109,13 +109,15 @@ public class TrackerActivity extends Activity {
 
     public void getLocation(){
         HashMap<String, Integer> hmOnlineScan;
+        HashMap<String, Integer> hmCordMap;
+        HashMap<String, Integer>  sortedMap;
         hmOnlineScan = singleScan();
 
         Datasource datasource = new Datasource(getApplicationContext(), "fingerprint_table");
         datasource.open();
         for (Map.Entry<String, Integer> entry : hmOnlineScan.entrySet()) {
             String xy = datasource.getCurrentCoordinates(entry.getKey(), entry.getValue());
-            HashMap<String, Integer> hmCordMap = new HashMap<String, Integer>();
+             hmCordMap = new HashMap<String, Integer>();
             int value;
             try {
                 if (hmCordMap.containsKey(xy)) {
@@ -128,6 +130,35 @@ public class TrackerActivity extends Activity {
                 Log.e("hmCordMap", "hmCordMap screwed up");
             }
         }
+       sortedMap = sortByComparator(hmCordMap);
+        Object firstKey = sortedMap.keySet().toArray()[0];
+        Toast.makeText(getApplicationContext(), firstKey.toString(), Toast.LENGTH_LONG).show();
+    }
+
+    //Putting the map in Linkedlist and sort the Linkedlist using comparator
+
+    private  static Map<String ,Integer>  sortByComparator(Map<String,Integer> unsortMap){
+       //Putting the map in linkedlist
+        List<Map.Entry<String, Integer>> cordList = new LinkedList<Map.Entry<String, Integer>>(unsortMap.entrySet());
+       //Sorting the list on values
+        Collections.sort(cordList , new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> lhs, Map.Entry<String, Integer> rhs) {
+                if(lhs.getValue()>rhs.getValue()){
+                    return 1; }
+               else if (lhs.getValue()<rhs.getValue()){
+                    return -1;
+                }
+               else    return 0;
+            }
+        });
+
+        Map<String, Integer> sortedMap = new LinkedHashMap<String, Integer>();
+        for (Map.Entry<String, Integer> entry : cordList)
+        {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+       return sortedMap;
     }
 
 
