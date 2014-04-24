@@ -8,6 +8,8 @@ public class Fingerprint {
     private String bssid;
     private String ssid;
     private int rss;
+    private int min;
+    private  int max;
 
     public int getFpId() { return fpId; }
 
@@ -37,8 +39,18 @@ public class Fingerprint {
         this.rss = rss;
     }
 
+    public  void setMax(int max){ this.max = max; }
+
+    public int getMax() {return max;}
+
+    public void setMin(int min){this.min = min;}
+
+    public int getMin() {return min;}
+
     public String toString() {
-        return String.valueOf(getFpId() + "   " + ";" + getBssid() + ";" + getSsid() + ";" + getRss() + "    ");
+        return String.valueOf(getFpId() + "    " + ";" + getBssid()/*.substring(9)*/ + ";" + getSsid() + ";" + getRss() + " ;" + getMax() + ";" + getMin() + "  ");
     }
 
+
 }
+

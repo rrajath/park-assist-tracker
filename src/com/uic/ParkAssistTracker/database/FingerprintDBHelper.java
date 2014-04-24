@@ -18,8 +18,9 @@ public class FingerprintDBHelper extends SQLiteOpenHelper {
                     "fp_id integer primary key autoincrement, " +
                     "bssid text not null, " +
                     "ssid text not null, " +
-                    "rss integer not null); ";
-
+                    "rss integer not null , " +
+                    " max integer not null," +
+                    " min integer not null ); ";
 
     FingerprintDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

@@ -63,6 +63,8 @@ public class TrackerActivity extends Activity {
                 Point parkCell = new Point(x, y);
 
                 // PNPPNPPNPPNP
+
+
                 switch (y) {
                     case 0:
                     case 2:
@@ -103,7 +105,7 @@ public class TrackerActivity extends Activity {
 
         for (Object aScanResultList : scanResultsList) {
             ScanResult scanResult = (ScanResult) aScanResultList;
-            hmOnlineScan.put(scanResult.BSSID, scanResult.level);
+            hmOnlineScan.put(scanResult.BSSID, WifiManager.calculateSignalLevel(scanResult.level,100));
         }
 
         return hmOnlineScan;
@@ -136,9 +138,20 @@ public class TrackerActivity extends Activity {
             }
         }
         datasource.close();
+        if(hmCordMap.isEmpty() == false){
         sortedMap = (HashMap<String, Integer>) sortByComparator(hmCordMap);
+        String result = "";
+            for (Map.Entry<String, Integer> entry : sortedMap.entrySet()){
+                result +=  entry.getKey().toString() + entry.getValue().toString() + "\n";
+            }
         Object firstKey = sortedMap.keySet().toArray()[0];
-        Toast.makeText(getApplicationContext(), firstKey.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+       // Toast.makeText(getApplicationContext(), firstKey.toString(), Toast.LENGTH_LONG).show();
+
+        }else{ //if hmCordMap is empty .This will happen when none of the cordinates matches or xy is null always!.
+            Toast.makeText(getApplicationContext(), "Sorry  your hashmap is empty ", Toast.LENGTH_LONG).show();
+        }
+
     }
 
 
@@ -235,7 +248,7 @@ public class TrackerActivity extends Activity {
      */
     public String generateRouteString(Point start, Point end) {
         // Helper method to calculate distance
-        // calculateDistance
+        // calculate Distance
         // Direction = start direction
         String direction = start.getDirection();
         int distance;

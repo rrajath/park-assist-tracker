@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 import com.uic.ParkAssistTracker.entity.Cell;
 import com.uic.ParkAssistTracker.entity.Fingerprint;
 import com.uic.ParkAssistTracker.entity.NavCell;
@@ -26,6 +27,9 @@ public class Datasource {
     public static final String KEY_BSSID = "bssid";                 // BSSID of the access point
     public static final String KEY_SSID = "ssid";                   // SSID of the access point
     public static final String KEY_RSS = "rss";                     // Signal Strength value
+    public static final String KEY_MAX = "max";
+    public static final String KEY_MIN = "min";
+
 
     public static final String KEY_PARK_ROWID = "park_cell_id";     // Parking Cell id
     public static final String KEY_NAV_ROWID = "nav_cell_id";       // Navigation Cell id
@@ -57,7 +61,7 @@ public class Datasource {
         if (tableName.equals("fingerprint_table")) {
             DbHelper = new FingerprintDBHelper(ctx);
             this.tableName = "fingerprint_table";
-            this.columns = new String[]{KEY_FP_ROWID, KEY_BSSID, KEY_SSID, KEY_RSS};
+            this.columns = new String[]{KEY_FP_ROWID, KEY_BSSID, KEY_SSID, KEY_RSS,KEY_MAX, KEY_MIN};
             this.rowId = KEY_FP_ROWID;
         }
     }
@@ -158,6 +162,8 @@ public class Datasource {
         initialValues.put(KEY_RSS, fp.getRss());
         initialValues.put(KEY_SSID, fp.getSsid());
         initialValues.put(KEY_BSSID, fp.getBssid());
+        initialValues.put(KEY_MAX,fp.getMax());
+        initialValues.put(KEY_MIN,fp.getMin());
 
         return db.insert(this.tableName, null, initialValues);
     }
@@ -223,6 +229,8 @@ public class Datasource {
         fingerprint.setBssid(cursor.getString(1));
         fingerprint.setSsid(cursor.getString(2));
         fingerprint.setRss(cursor.getInt(3));
+        fingerprint.setMax(cursor.getInt(4));
+        fingerprint.setMin(cursor.getInt(5));
 
         return fingerprint;
     }
@@ -255,20 +263,40 @@ public class Datasource {
         String query = "select x_cord, y_cord from navigation_table " +
                 "where fp_id = (select f.fp_id from fingerprint_table f " +
                 "where f.bssid = '" + bssid + "' order by abs(" + rss + " - rss) limit 1)";
-
+         String s1=    "select x_cord, y_cord from navigation_table where fp_id in (select f.fp_id from fingerprint_table f" +
+                 " where f.rss >= " + (rss-3) + " and  f.rss <= "+(rss+3)+"  ) group by x_cord , y_cord limit 1";
 
         Cursor cursor = null;
-        try {
+       /* try {
             cursor = db.rawQuery(query, null);
-            cursor.moveToFirst();
+
+            if (cursor.getCount()>0){
+            cursor.moveToFirst();}
         } catch (CursorIndexOutOfBoundsException e) {
             Log.e("Datasource", e.getMessage());
         }
 
-        if (cursor != null) {
+        if (cursor.getCount()>0) {
             return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
         } else {
             return null;
-        }
+        }*/
+
+      cursor = db.rawQuery(query,null);
+
+
+          int cursorCount = cursor.getCount();
+
+          if( cursorCount>0){
+
+            cursor.moveToFirst();
+            return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
+         }
+
+           return null;
+
+
+
     }
+
 }

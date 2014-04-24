@@ -60,7 +60,7 @@ public class ManageDBActivity extends Activity {
               datasource = new Datasource(this , table);
               datasource.open();
               while(scan.hasNextLine()){
-                  FingerprintInsert(scan.nextLine(), datasource);
+                  FingerprintInsert(scan.nextLine().replaceAll("\\p{Z}",""), datasource);
                   count++;
               }
               Toast.makeText(getApplicationContext(), count + " records are inserted", Toast.LENGTH_LONG).show();
@@ -136,6 +136,10 @@ public class ManageDBActivity extends Activity {
        fp.setBssid(elements[1]);
        fp.setSsid(elements[2]);
        fp.setRss(Integer.parseInt(elements[3]));
+       fp.setMax(Integer.parseInt(elements[4]));
+       fp.setMin(Integer.parseInt(elements[5]));
+
+
        datasource.insertFingerprint(fp);
    }
    ////Read the row from Navigation text file
