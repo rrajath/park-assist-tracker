@@ -42,4 +42,8 @@ public class Point {
     public void setDirection(String direction) {
         this.direction = direction;
     }
+
+    public String toString() {
+        return "" + this.getX() + "," + this.getY();
+    }
 }

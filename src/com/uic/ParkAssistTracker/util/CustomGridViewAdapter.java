@@ -41,18 +41,20 @@ public class CustomGridViewAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View gridView;
+//        View gridView;
         if(convertView == null) {
 //            gridView = inflater.inflate(R.layout.fingerprintlayout, null);
-            gridView = inflater.inflate(R.layout.fingerprintlayout, null);
+            convertView = inflater.inflate(R.layout.fingerprintlayout, null);
         }
+/*
         else {
             gridView = (View) convertView;
+            convertView = (TextView)convertView.getTag(R.id.textView);
         }
-        assert gridView != null;
-        final TextView tv = (TextView)gridView.findViewById(R.id.textView);
+*/
+        TextView tv = (TextView)convertView.findViewById(R.id.textView);
         tv.setText(gridV[position]);
 
-        return gridView;
+        return convertView;
     }
 }

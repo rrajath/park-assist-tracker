@@ -2,16 +2,14 @@ package com.uic.ParkAssistTracker.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
-import android.widget.Toast;
 import com.uic.ParkAssistTracker.entity.Cell;
 import com.uic.ParkAssistTracker.entity.Fingerprint;
 import com.uic.ParkAssistTracker.entity.NavCell;
 import com.uic.ParkAssistTracker.entity.ParkCell;
+import com.uic.ParkAssistTracker.util.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -259,44 +257,33 @@ public class Datasource {
         return navCell;
     }
 
-    public String getCurrentCoordinates(String bssid, int rss) {
-        String query = "select x_cord, y_cord from navigation_table " +
-                "where fp_id = (select f.fp_id from fingerprint_table f " +
-                "where f.bssid = '" + bssid + "' order by abs(" + rss + " - rss) limit 1)";
-         String s1=    "select x_cord, y_cord from navigation_table where fp_id in (select f.fp_id from fingerprint_table f" +
-                 " where f.rss >= " + (rss-3) + " and  f.rss <= "+(rss+3)+"  ) group by x_cord , y_cord limit 1";
+    public Point getCurrentCoordinates(String bssid, int rss, ArrayList<Point> alPoints) {
 
-        Cursor cursor = null;
-       /* try {
-            cursor = db.rawQuery(query, null);
+        /*
+         * We have a list of coordinates. We retrieve the set of fp_ids belonging to those coordinates from
+         * navigation_table. We query fingerprint_table for these coordinates trying to match the bssid and rss
+         * thus retrieving the relevant fp_ids. These fp_ids are queried back in the navigation_table to
+         * retrieve the coordinates.
+         */
+        String query = "SELECT x_cord, y_cord, direction FROM navigation_table " +
+                "WHERE fp_id IN (SELECT f.fp_id FROM (SELECT fp_id, bssid, rss " +
+                "FROM fingerprint_table WHERE fp_id IN (SELECT fp_id " +
+                "FROM navigation_table WHERE (" +
+                "x_cord = " + alPoints.get(0).getX() + " and y_cord = " + alPoints.get(0).getY() + ") OR (" +
+                "x_cord = " + alPoints.get(1).getX() + " and y_cord = " + alPoints.get(1).getY() + ") OR (" +
+                "x_cord = " + alPoints.get(2).getX() + " and y_cord = " + alPoints.get(2).getY() + "))) " +
+                "AS f WHERE f.bssid = '" + bssid + "' order by abs(" + rss + " - rss)) LIMIT 1";
 
-            if (cursor.getCount()>0){
-            cursor.moveToFirst();}
-        } catch (CursorIndexOutOfBoundsException e) {
-            Log.e("Datasource", e.getMessage());
+        Cursor cursor = db.rawQuery(query,null);
+        int cursorCount = cursor.getCount();
+
+        if (cursorCount > 0) {
+            cursor.moveToFirst();
+            return new Point(cursor.getInt(0), cursor.getInt(1), cursor.getString(2));
         }
 
-        if (cursor.getCount()>0) {
-            return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
-        } else {
-            return null;
-        }*/
-
-      cursor = db.rawQuery(query,null);
-
-
-          int cursorCount = cursor.getCount();
-
-          if( cursorCount>0){
-
-            cursor.moveToFirst();
-            return String.valueOf(cursor.getInt(0)) + "," + String.valueOf(cursor.getInt(1));
-         }
-
-           return null;
-
-
-
+        // If no match is found, return null
+        return null;
     }
 
 }
