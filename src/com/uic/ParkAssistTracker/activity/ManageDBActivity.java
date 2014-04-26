@@ -3,14 +3,14 @@ package com.uic.ParkAssistTracker.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 import com.uic.ParkAssistTracker.R;
 import com.uic.ParkAssistTracker.database.Datasource;
-import com.uic.ParkAssistTracker.entity.*;
+import com.uic.ParkAssistTracker.entity.Fingerprint;
+import com.uic.ParkAssistTracker.entity.NavCell;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,7 +39,7 @@ public class ManageDBActivity extends Activity {
         datasource.open();
         datasource.deleteSequence(table);
 
-        Toast.makeText(getApplicationContext(), table + " sequence deleted", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), table + " sequence deleted", Toast.LENGTH_SHORT).show();
         datasource.close();
     }
 
@@ -63,7 +63,7 @@ public class ManageDBActivity extends Activity {
                   FingerprintInsert(scan.nextLine().replaceAll("\\p{Z}",""), datasource);
                   count++;
               }
-              Toast.makeText(getApplicationContext(), count + " records are inserted", Toast.LENGTH_LONG).show();
+              Toast.makeText(getApplicationContext(), count + " records are inserted", Toast.LENGTH_SHORT).show();
               count =0;
               scan.close();
               datasource.close();
@@ -91,7 +91,7 @@ public class ManageDBActivity extends Activity {
                   NavCellDataInsert(scan.nextLine(), datasource);
                   count++;
               }
-              Toast.makeText(getApplicationContext(), count + " records are inserted", Toast.LENGTH_LONG).show();
+              Toast.makeText(getApplicationContext(), count + " records are inserted", Toast.LENGTH_SHORT).show();
               count =0;
               scan.close();
               datasource.close();
@@ -109,7 +109,7 @@ public class ManageDBActivity extends Activity {
         datasource.open();
         datasource.deleteTable(table);
 
-        Toast.makeText(getApplicationContext(), table + " deleted", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), table + " deleted", Toast.LENGTH_SHORT).show();
         datasource.close();
     }
     public void refreshDB(View view) {
@@ -117,7 +117,7 @@ public class ManageDBActivity extends Activity {
         datasource = new Datasource(this, table);
         datasource.open();
         datasource.refreshDB();
-        Toast.makeText(getApplicationContext(), table + " re-created", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), table + " re-created", Toast.LENGTH_SHORT).show();
         datasource.close();
     }
     public void viewDB(View view) {

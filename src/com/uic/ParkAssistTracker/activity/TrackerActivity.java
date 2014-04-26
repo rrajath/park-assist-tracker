@@ -117,9 +117,10 @@ public class TrackerActivity extends Activity {
         String directionPair;                       // direction of previous and next checkpoint
         int[] pointsArray = null;                   // array of integers pointing to reference points
         Point lastPoint = lastKnownLocation;        // lastPoint is lastKnownLocation to start the search
+        boolean destReached = false;
 
         // Until the next3Points bucket is filled
-        while (next3Points.size() < 3) {
+        while (next3Points.size() < 3 && !destReached) {
             if (directionChanged) {
                 // get directionPair from nextDirection list currently pointed to by routeListCounter
                 directionPair = nextDirection.get(routeListCounter);
@@ -137,6 +138,12 @@ public class TrackerActivity extends Activity {
                 // Traverse through the array and add points to the next3Points bucket until it is full
                 // Array traversal excludes current point. Hence for(i = index + 1...)
                 for (int i = index + 1; i < pointsArray.length; i++) {
+                    String cord = String.valueOf(pointsArray[i]) + "," + String.valueOf(y);
+                    if (cord.equalsIgnoreCase(destinationPoint.toString())){
+                        next3Points.add(new Point(pointsArray[i], y));
+                        destReached = true;
+                        break;
+                    }
                     next3Points.add(new Point(pointsArray[i], y));
                     counter++;
                     if (counter == 3 || next3Points.size() == 3) {
@@ -152,6 +159,12 @@ public class TrackerActivity extends Activity {
                     x = lastKnownLocation.getX();
                 }
                 int y = pointsArray[0];     // Size of this array is always 1. So we hardcode it to pointsArray[0]
+                String cord = String.valueOf(x) + "," + String.valueOf(y);
+                if (cord.equalsIgnoreCase(destinationPoint.toString())) {
+                    next3Points.add(new Point(x, y));
+                    destReached = true;
+                    break;
+                }
                 next3Points.add(new Point(x, y));
             }
             // If the bucket size reaches 3, we increment the routeListCounter
@@ -161,16 +174,19 @@ public class TrackerActivity extends Activity {
             }
         }
         // Toast the output for testing purposes. This displays the next 3 points from the current point
-        String output = "(" + String.valueOf(next3Points.get(0).getX()) + "," + String.valueOf(next3Points.get(0).getY()) + ")\n";
-        output += "(" + String.valueOf(next3Points.get(1).getX()) + "," + String.valueOf(next3Points.get(1).getY()) + ")\n";
-        output += "(" + String.valueOf(next3Points.get(2).getX()) + "," + String.valueOf(next3Points.get(2).getY()) + ")";
+        String output = "";
+        for (int i = 0; i < next3Points.size(); i++) {
+            output += "(" + String.valueOf(next3Points.get(i).getX()) + "," + String.valueOf(next3Points.get(i).getY()) + ")\n";
+        }
+//        output += "(" + String.valueOf(next3Points.get(1).getX()) + "," + String.valueOf(next3Points.get(1).getY()) + ")\n";
+//        output += "(" + String.valueOf(next3Points.get(2).getX()) + "," + String.valueOf(next3Points.get(2).getY()) + ")";
 
-        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
         // search the database with the 3 coordinates obtained and return the current point
         // assign current point to last known location
         lastKnownLocation = getLocation(); // The current location obtained by matching the next 3 feature points
-        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
         return lastKnownLocation;
     }
 
@@ -258,7 +274,7 @@ public class TrackerActivity extends Activity {
             for (Map.Entry<String, Integer> entry : sortedMap.entrySet()){
                 result += entry.getKey() + " " + entry.getValue().toString() + "\n";
             }
-            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
 
         } else {
             // If hmCordMap is empty. This will happen when none of the coordinates match or if xy is null.
@@ -317,7 +333,7 @@ public class TrackerActivity extends Activity {
         int[] xArray = {1, 5, 9, 13, 17, 21, 26};
 
         // Calculate direction
-        direction = getDirection(x, y);
+        direction = getDirection(parkCell);
 
         // Compute x co-ordinate
         for (int aXArray : xArray) {
@@ -345,17 +361,16 @@ public class TrackerActivity extends Activity {
 
     /**
      * Returning the direction for the coordinate
-     * @param x - x coordinate of the point
-     * @param y - y coordinate of the point
+     * @param point - current point
      * @return - direction
      */
-    public String getDirection(int x, int y) {
+    public String getDirection(Point point) {
         String direction;
-        if (x == 1) {
+        if (point.getX() == 1) {
             direction = "west";
-        } else if (x == 26) {
+        } else if (point.getX() == 26) {
             direction = "east";
-        } else if (y > 5) {
+        } else if (point.getY() > 5) {
             direction = "north";
         } else {
             direction = "south";
