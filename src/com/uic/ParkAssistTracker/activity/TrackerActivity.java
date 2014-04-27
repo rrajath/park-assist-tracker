@@ -29,7 +29,7 @@ public class TrackerActivity extends Activity {
     List scanResultsList;
     ArrayList<String> nextDirection = new ArrayList<String>();      // List of direction pairs
     int routeListCounter = 0;
-    Point lastKnownLocation = new Point(26,10,"north");
+    Point lastKnownLocation = new Point(1,4,"west");
     ArrayList<Point> next3Points = new ArrayList<Point>();          // next3Points bucket
     Point destinationPoint;                                         // ParkCell selected by user
 
@@ -73,7 +73,7 @@ public class TrackerActivity extends Activity {
                     case 9:
                     case 11:
                         // Fix the start and destination points
-                        destinationPoint = getNearestNavCell(parkCell);
+                        destinationPoint = isCheckpoint(parkCell);
                         nextDirection.clear();
                         calculateRoute(destinationPoint);
                         Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
@@ -118,6 +118,7 @@ public class TrackerActivity extends Activity {
         int[] pointsArray = null;                   // array of integers pointing to reference points
         Point lastPoint = lastKnownLocation;        // lastPoint is lastKnownLocation to start the search
         boolean destReached = false;
+        int y = lastPoint.getY();
 
         // Until the next3Points bucket is filled
         while (next3Points.size() < 3 && !destReached) {
@@ -133,18 +134,19 @@ public class TrackerActivity extends Activity {
             if (pointsArray.length > 1) {           // The list returned is a set of x-coordinates
                 // Search for lastPoint's x-coordinate from the array and return the index
                 int index = searchIndex(pointsArray, lastPoint.getX());
-                int y = lastPoint.getY();
+//                y = lastPoint.getY();
                 int counter = 0;
                 // Traverse through the array and add points to the next3Points bucket until it is full
                 // Array traversal excludes current point. Hence for(i = index + 1...)
                 for (int i = index + 1; i < pointsArray.length; i++) {
                     String cord = String.valueOf(pointsArray[i]) + "," + String.valueOf(y);
+                    int x = pointsArray[i];
                     if (cord.equalsIgnoreCase(destinationPoint.toString())){
-                        next3Points.add(new Point(pointsArray[i], y));
+                        next3Points.add(new Point(x, y));
                         destReached = true;
                         break;
                     }
-                    next3Points.add(new Point(pointsArray[i], y));
+                    next3Points.add(new Point(x, y));
                     counter++;
                     if (counter == 3 || next3Points.size() == 3) {
                         break;
@@ -158,7 +160,7 @@ public class TrackerActivity extends Activity {
                 } else {
                     x = lastKnownLocation.getX();
                 }
-                int y = pointsArray[0];     // Size of this array is always 1. So we hardcode it to pointsArray[0]
+                y = pointsArray[0];     // Size of this array is always 1. So we hardcode it to pointsArray[0]
                 String cord = String.valueOf(x) + "," + String.valueOf(y);
                 if (cord.equalsIgnoreCase(destinationPoint.toString())) {
                     next3Points.add(new Point(x, y));
@@ -166,6 +168,7 @@ public class TrackerActivity extends Activity {
                     break;
                 }
                 next3Points.add(new Point(x, y));
+//                lastPoint.setY(y);
             }
             // If the bucket size reaches 3, we increment the routeListCounter
             directionChanged = next3Points.size() < 3;
@@ -500,7 +503,7 @@ public class TrackerActivity extends Activity {
          * currentPoint(1,10) and nextCheckpoint(1,7)
          * dest.getY() != currentPoint.getY() -> currentPoint must not be in the same column as nextCheckpoint
          */
-        if (distance != 0 && dest.getX() == currentPoint.getX() && dest.getY() != currentPoint.getY()) {
+        if (distance != 0 && nextCheckpoint.getX() == currentPoint.getX() && dest.getY() != currentPoint.getY()) {
             // Add navigation instruction to routeStrings
             routeStrings.add(generateRouteString(currentPoint, nextCheckpoint));
             // Add direction pair to nextDirection
@@ -531,7 +534,11 @@ public class TrackerActivity extends Activity {
                     routeStrings.add(generateRouteString(currentPoint, nextCheckpoint));
                 }
                 currentPoint = nextCheckpoint;
-                nextCheckpoint = checkpointArray[(counter + 1) % 8];
+                if (currentPoint.getY() != destinationPoint.getY()) {
+                    nextCheckpoint = checkpointArray[(counter + 1) % 8];
+                } else {
+                    nextCheckpoint = getNextCheckpoint(currentPoint);
+                }
             }
             counter++;
         }
@@ -540,27 +547,102 @@ public class TrackerActivity extends Activity {
 
     /**
      * Given the current point, get next checkpoint
-     * @param point current point
+     * @param currentPoint current point
      * @return next checkpoint
      */
-    public Point getNextCheckpoint(Point point) {
+    public Point getNextCheckpoint(Point currentPoint) {
         // Initialize nextCheckpoint to a dummy value
         Point nextCheckpoint = new Point(0, 0);
         // If y coordinate is more than 5, the next checkpoint will be in the right half of the parking lot.
         // Else, left half.
-        if (point.getY() > 5) {
+        //
+
+        if(intersection(currentPoint)){
+            if(currentPoint.getY() == destinationPoint.getY()){
+                nextCheckpoint.setX(26);
+                nextCheckpoint.setY(currentPoint.getY());
+                nextCheckpoint.setDirection("east");}
+            else{
+
+                nextCheckpoint.setX(currentPoint.getX());
+                nextCheckpoint.setY(1);
+                nextCheckpoint.setDirection("south");
+            }
+
+            }
+        else if (currentPoint.getY() > 5) {
             nextCheckpoint.setX(1);
-            nextCheckpoint.setY(point.getY());
+            nextCheckpoint.setY(currentPoint.getY());
             nextCheckpoint.setDirection("west");
         } else {
-            nextCheckpoint.setX(26);
-            nextCheckpoint.setY(point.getY());
-            nextCheckpoint.setDirection("east");
+             {
+                nextCheckpoint.setX(currentPoint.getX());
+                nextCheckpoint.setY(1);
+                nextCheckpoint.setDirection("south");
+            }
         }
         return nextCheckpoint;
     }
 
 
+    public Point isCheckpoint(Point point) {
+        Point[] checkpointArray = {
+                new Point(26, 10, "north"),
+                new Point(1, 10, "west"),
+                new Point(1, 7, "west"),
+                new Point(1, 4, "southwest"),
+                new Point(1, 1, "south"),
+                new Point(26, 1, "east"),
+                new Point(26, 4, "east"),
+                new Point(26, 7, "northeast")
+        };
+
+        // HashMap to store checkpoints. The values can be used to traverse through the checkpointArray
+        HashMap<String, Integer> chkPointMap = new HashMap<String, Integer>();
+        chkPointMap.put("26,10", 0);
+        chkPointMap.put("1,10", 1);
+        chkPointMap.put("1,7", 2);
+        chkPointMap.put("1,4", 3);
+        chkPointMap.put("1,1", 4);
+        chkPointMap.put("26,1", 5);
+        chkPointMap.put("26,4", 6);
+        chkPointMap.put("26,7", 7);
+
+        int x = point.getX();
+        int y = point.getY();
+        int navY;
+        int navX;
+
+        // Check if x-coordinate is the top row of the grid
+        if (x == 0) {
+            navX = 1;
+        } else {
+            navX = x;
+        }
+
+        // Compute y co-ordinate
+        if (y % 3 == 0) {
+            navY = y + 1;
+        } else {
+            navY = y - 1;
+        }
+
+        String pt = String.valueOf(navX) + "," + String.valueOf(navY);
+        if (chkPointMap.containsKey(pt)) {
+            return checkpointArray[chkPointMap.get(pt)];
+        }
+
+        return getNearestNavCell(point);
+    }
+    public boolean intersection(Point intersect){
+
+        int x = intersect.getX();
+        int y = intersect.getY();
+        if ((x == 1) && (y == 4)){
+           return true;
+        }
+       else  return  false;
+    }
     /**
      * Given the direction pair, retrieve an array of x or y coordinates
      * @param direction direction-pair
