@@ -199,7 +199,7 @@ public class TrackerActivity extends Activity {
                     }
                 }
             } catch (Exception ignored) {
-
+                break;
             }
             // If the bucket size reaches 3, we increment the routeListCounter
             directionChanged = next3Points.size() < 3;
@@ -441,7 +441,7 @@ public class TrackerActivity extends Activity {
 
         distance = calculateDistance(start, end);
 
-        String route = "Go " + distance + " meters " + direction + "\n";
+        String route = "Go " + distance + " meters " + direction;
 
         if (routeStrings.size() > 0) {
             lastElement = routeStrings.size() - 1;
@@ -571,7 +571,7 @@ public class TrackerActivity extends Activity {
                 if (distance != 0) {
                     nextDirection.add(currentPoint.getDirection() + "-" + getNextCheckpoint(dest).getDirection());
                     route = "Go " + distance + " meters " + dest.getDirection() +
-                            " and your parking spot is on the " + destSide + "\n";
+                            " and your parking spot is on the " + destSide;
                     routeStrings.add(route);
                 }
                 break;
