@@ -268,10 +268,13 @@ public class Datasource {
         String query = "SELECT x_cord, y_cord, direction FROM navigation_table " +
                 "WHERE fp_id IN (SELECT f.fp_id FROM (SELECT fp_id, bssid, rss " +
                 "FROM fingerprint_table WHERE fp_id IN (SELECT fp_id " +
-                "FROM navigation_table WHERE (" +
-                "x_cord = " + alPoints.get(0).getX() + " and y_cord = " + alPoints.get(0).getY() + ") OR (" +
-                "x_cord = " + alPoints.get(1).getX() + " and y_cord = " + alPoints.get(1).getY() + ") OR (" +
-                "x_cord = " + alPoints.get(2).getX() + " and y_cord = " + alPoints.get(2).getY() + "))) " +
+                "FROM navigation_table WHERE (";
+
+        int i;
+        for (i = 0; i < alPoints.size() - 1; i++) {
+            query += "x_cord = " + alPoints.get(i).getX() + " and y_cord = " + alPoints.get(i).getY() + ") OR (";
+        }
+        query += "x_cord = " + alPoints.get(i).getX() + " and y_cord = " + alPoints.get(i).getY() + "))) " +
                 "AS f WHERE f.bssid = '" + bssid + "' order by abs(" + rss + " - rss)) LIMIT 1";
 
         Cursor cursor = db.rawQuery(query,null);
