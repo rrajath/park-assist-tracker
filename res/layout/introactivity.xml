@@ -19,4 +19,65 @@
         android:text="ManageDB"
         android:id="@+id/bManageDB"
         android:layout_gravity="center_horizontal"/>
+
+    <EditText
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/startX"
+        android:layout_gravity="center_horizontal"
+        android:inputType="number"
+        android:text="26"/>
+
+    <EditText
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/startY"
+        android:layout_gravity="center_horizontal"
+        android:inputType="number"
+        android:text="10"/>
+
+    <RadioGroup
+        android:id="@+id/radioDirection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radioN"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="north"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/radioS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="south"/>
+
+        <RadioButton
+            android:id="@+id/radioE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="east"/>
+
+        <RadioButton
+            android:id="@+id/radioW"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="west"/>
+
+        <RadioButton
+            android:id="@+id/radioSW"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="southwest"/>
+
+        <RadioButton
+            android:id="@+id/radioNE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="northeast"/>
+
+    </RadioGroup>
+
 </LinearLayout>
