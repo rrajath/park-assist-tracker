@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.Toast;
 import com.uic.ParkAssistTracker.R;
 import com.uic.ParkAssistTracker.database.Datasource;
 import com.uic.ParkAssistTracker.util.Beacon;
@@ -31,7 +33,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
     List scanResultsList;
     ArrayList<String> nextDirection = new ArrayList<String>();      // List of direction pairs
     int routeListCounter = 0;
-    Point lastKnownLocation = new Point(1,10,"west");
+    Point lastKnownLocation = new Point(1,10,"north");
     ArrayList<Point> next3Points = new ArrayList<Point>();          // next3Points bucket
     Point destinationPoint;                                         // ParkCell selected by user
     Deque<Point> navigationQueue = new LinkedList<Point>();
@@ -44,6 +46,16 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fingerprintlayout);
         textToSpeech = new TextToSpeech(this , this);
+
+        Bundle extras = getIntent().getExtras();
+        assert extras != null;
+        int stX = extras.getInt("startX");
+        int stY = extras.getInt("startY");
+        String stDirection = extras.getString("direction");
+
+        lastKnownLocation = new Point(stX, stY, stDirection);
+
+        Toast.makeText(getApplicationContext(), "Current Point: " + lastKnownLocation.toString() + " " + stDirection, Toast.LENGTH_SHORT).show();
 
         for (int i = 0; i < 336; i++) {
             if ((i) - ((3 * k + 1)) == 0) {
@@ -81,7 +93,14 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                     case 11:
                         // Fix the start and destination points
                         destinationPoint = isCheckpoint(parkCell);
+                        Point tmpPoint = destinationPoint;
                         nextDirection.clear();
+                        if(destinationPoint.getY() == 7 && destinationPoint.getX() != 1 ){
+                            destinationPoint = new Point(26 ,4 ,"east");
+                            calculateRoute(destinationPoint);
+                            lastKnownLocation = destinationPoint;
+                            destinationPoint = tmpPoint;
+                        }
                         calculateRoute(destinationPoint);
                         Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
                         routeStrings.clear();
@@ -245,6 +264,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
 //        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
         Beacon.beacon = lastKnownLocation.getX()*GRID_COLUMNS + lastKnownLocation.getY();
 
+        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
         return lastKnownLocation;
     }
 
@@ -411,16 +431,16 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         if (y % 3 == 0) {
             navY = y + 1;
             if (direction.equalsIgnoreCase("south")) {
-                destSide = "Right";
+                destSide = "right";
             } else {
-                destSide = "Left";
+                destSide = "left";
             }
         } else {
             navY = y - 1;
             if (direction.equalsIgnoreCase("south")) {
-                destSide = "Left";
+                destSide = "left";
             } else {
-                destSide = "Right";
+                destSide = "right";
             }
         }
 
@@ -451,9 +471,9 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
 
     /**
      * Generate navigation instructions for the given start and end point
-     * @param start - start point
-     * @param end - end point
-     * @return - String containing navigation instructions
+     * @param start start point
+     * @param end end point
+     * @return String containing navigation instructions
      */
     public String generateRouteString(Point start, Point end) {
         String direction = start.getDirection();
@@ -513,7 +533,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
     /**
      * Calculate the complete route between current point and destination points and update the global
      * variables routeStrings and nextDirection
-     * @param dest - destination point
+     * @param dest destination point
      */
     public void calculateRoute(Point dest) {
 
@@ -608,7 +628,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                     routeStrings.add(generateRouteString(currentPoint, nextCheckpoint));
                 }
                 currentPoint = nextCheckpoint;
-                if (currentPoint.getY() != destinationPoint.getY()) {
+                if (currentPoint.getY() != dest.getY()) {
                     nextCheckpoint = checkpointArray[(counter + 1) % 8];
                 } else {
                     nextCheckpoint = getNextCheckpoint(currentPoint);
@@ -710,6 +730,8 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         int y = intersect.getY();
         return (x == 1) && (y == 4);
     }
+
+
     /**
      * Given the direction pair, retrieve an array of x or y coordinates
      * @param direction direction-pair
