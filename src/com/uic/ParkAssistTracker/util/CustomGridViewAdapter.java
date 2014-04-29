@@ -1,6 +1,7 @@
 package com.uic.ParkAssistTracker.util;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,10 +43,10 @@ public class CustomGridViewAdapter extends BaseAdapter {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 //        View gridView;
-        if(convertView == null) {
+
 //            gridView = inflater.inflate(R.layout.fingerprintlayout, null);
             convertView = inflater.inflate(R.layout.fingerprintlayout, null);
-        }
+
 /*
         else {
             gridView = (View) convertView;
@@ -54,7 +55,9 @@ public class CustomGridViewAdapter extends BaseAdapter {
 */
         TextView tv = (TextView)convertView.findViewById(R.id.textView);
         tv.setText(gridV[position]);
-
+        if(position == Beacon.beacon){
+       convertView.setBackgroundColor(Color.BLUE);
+        }
         return convertView;
     }
 }

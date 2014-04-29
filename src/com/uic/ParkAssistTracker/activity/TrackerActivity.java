@@ -5,17 +5,19 @@ import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import com.uic.ParkAssistTracker.R;
 import com.uic.ParkAssistTracker.database.Datasource;
+import com.uic.ParkAssistTracker.util.Beacon;
 import com.uic.ParkAssistTracker.util.CustomGridViewAdapter;
 import com.uic.ParkAssistTracker.util.Point;
 
 import java.util.*;
 
-public class TrackerActivity extends Activity {
+public class TrackerActivity extends Activity implements TextToSpeech.OnInitListener {
     /**
      * Called when the activity is first created.
      */
@@ -29,16 +31,19 @@ public class TrackerActivity extends Activity {
     List scanResultsList;
     ArrayList<String> nextDirection = new ArrayList<String>();      // List of direction pairs
     int routeListCounter = 0;
-    Point lastKnownLocation = new Point(1,7,"west");
+    Point lastKnownLocation = new Point(1,10,"west");
     ArrayList<Point> next3Points = new ArrayList<Point>();          // next3Points bucket
     Point destinationPoint;                                         // ParkCell selected by user
     Deque<Point> navigationQueue = new LinkedList<Point>();
     String destSide;
+    String speech;
+    private TextToSpeech textToSpeech;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fingerprintlayout);
+        textToSpeech = new TextToSpeech(this , this);
 
         for (int i = 0; i < 336; i++) {
             if ((i) - ((3 * k + 1)) == 0) {
@@ -109,6 +114,11 @@ public class TrackerActivity extends Activity {
         // SHOULD WE RESET IT EVERY TIME?
         routeListCounter = 0;
 
+        textToSpeech.speak("Go 5 meters North", TextToSpeech.QUEUE_ADD, null);
+        textToSpeech.speak("Go 5 meters South", TextToSpeech.QUEUE_ADD, null);
+        textToSpeech.speak("Go 5 meters East", TextToSpeech.QUEUE_ADD, null);
+        textToSpeech.speak("Go 5 meters West", TextToSpeech.QUEUE_ADD, null);
+
         // Clear next3Points every time the method is called
         next3Points.clear();
         // start search from last known location
@@ -125,7 +135,10 @@ public class TrackerActivity extends Activity {
         Point navPoint;
 
         // Display the routeString related to start point
+        speech = routeStrings.get(0);
         Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+//        speakOut();
+        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
         navigationQueue.removeFirst();
 
         // Until the next3Points bucket is filled
@@ -157,7 +170,10 @@ public class TrackerActivity extends Activity {
                             // TODO: try-catch for the queue
                             navPoint = next3Points.get(next3Points.size() - 1);
                             if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
+                                speech = routeStrings.get(0);
                                 Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+//                                speakOut();
+                                textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
                                 navigationQueue.removeFirst();
                             }
                             destReached = true;
@@ -167,7 +183,10 @@ public class TrackerActivity extends Activity {
                         // Check if the point being added to next3Points is the same as the head of the queue
                         navPoint = next3Points.get(next3Points.size() - 1);
                         if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
+                            speech = routeStrings.get(0);
                             Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+//                            speakOut();
+                            textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
                             navigationQueue.removeFirst();
                         }
                         counter++;
@@ -194,7 +213,10 @@ public class TrackerActivity extends Activity {
                     // Check if the point being added to next3Points is the same as the head of the queue
                     navPoint = next3Points.get(next3Points.size() - 1);
                     if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
+                        speech = routeStrings.get(0);
                         Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+//                        speakOut();
+                         textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
                         navigationQueue.removeFirst();
                     }
                 }
@@ -221,6 +243,8 @@ public class TrackerActivity extends Activity {
         // assign current point to last known location
         lastKnownLocation = getLocation(); // The current location obtained by matching the next 3 feature points
 //        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
+        Beacon.beacon = lastKnownLocation.getX()*GRID_COLUMNS + lastKnownLocation.getY();
+
         return lastKnownLocation;
     }
 
@@ -716,4 +740,46 @@ public class TrackerActivity extends Activity {
 
         return null;
     }
-}
+
+    @Override
+    public void onInit(int status) {
+
+        if (status == TextToSpeech.SUCCESS) {
+
+            int result = textToSpeech.setLanguage(Locale.US);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TextToSpeech", "This Language is not supported");
+            } else {
+
+               // speakOut();
+            }
+
+        } else {
+            Log.e("TextToSpeech", "Initilization Failed!");
+        }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        // Don't forget to shutdown tts!
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+    }
+
+        private  void speakOut(){
+
+              textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+
+        }
+
+    }
+
+
+
+

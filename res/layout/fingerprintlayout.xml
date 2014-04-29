@@ -2,7 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ABABAB">
+    android:background="@android:color/transparent">
 
     <GridView
         android:id="@+id/gridview"
@@ -11,7 +11,9 @@
         android:columnWidth="30dp"
         android:horizontalSpacing="1dp"
         android:verticalSpacing="1dp"
-        android:gravity="center">
+        android:gravity="center"
+        android:background="@android:color/transparent"
+        >
     </GridView>
 
     <TextView
@@ -19,7 +21,9 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_marginTop="5dp"
-        android:textSize="15sp">
+        android:textSize="15sp"
+
+         >
     </TextView>
 
 </RelativeLayout>
