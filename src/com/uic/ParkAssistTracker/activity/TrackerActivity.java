@@ -108,8 +108,36 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         }
                         calculateRoute(destinationPoint);
                         lastKnownLocation = tmpStartPoint;
-                        Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
+//                        Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
+
+                        speech = routeStrings.get(0);
+                        Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+                        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+                        navigationQueue.removeFirst();
+
+//                        Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
+
                         // Calculate the route for start and end points
+
+                        new Thread() {
+                            int i =0;
+                            public void run() {
+                                while (i++ < 10) {
+                                    try {
+                                        runOnUiThread(new Runnable() {
+
+                                            @Override
+                                            public void run() {
+                                                getCurrentPoint();
+                                            }
+                                        });
+                                        Thread.sleep(2000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }.start();
 /*
                         calculateRoute(startPoint, destinationPoint);
                         Intent intent = new Intent(TrackerActivity.this , DirectionActivity.class);
@@ -153,13 +181,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         Point navPoint;
 
         // Display the routeString related to start point
-        speech = routeStrings.get(0);
-        Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
-//        speakOut();
-        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
-        navigationQueue.removeFirst();
 
-        next3Points.add(lastKnownLocation);
 
         // Until the next3Points bucket is filled
         while (next3Points.size() < 3 && !destReached) {
