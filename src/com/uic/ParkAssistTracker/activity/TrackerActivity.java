@@ -54,7 +54,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
 
         lastKnownLocation = new Point(stX, stY, stDirection);
 
-        Toast.makeText(getApplicationContext(), "Current Point: " + lastKnownLocation.toString() + " " + stDirection, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Current Point: " + convertPointToParkingSlot() + " " + stDirection, Toast.LENGTH_SHORT).show();
 
         int count = 1;
         for (int i = 0; i < 336; i++) {
@@ -108,21 +108,24 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         }
                         calculateRoute(destinationPoint);
                         lastKnownLocation = tmpStartPoint;
+
+
 //                        Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
 
-                        speech = routeStrings.get(0);
+                       /* speech = routeStrings.get(0);
                         Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
                         textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
-                        navigationQueue.removeFirst();
+                        navigationQueue.removeFirst();*/
+
 
 //                        Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
 
                         // Calculate the route for start and end points
-
+                        speakOut();
                         new Thread() {
-                            int i =0;
+
                             public void run() {
-                                while (i++ < 10) {
+                                while (!lastKnownLocation.toString().equals(destinationPoint.toString())) {
                                     try {
                                         runOnUiThread(new Runnable() {
 
@@ -147,10 +150,12 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
 //                        getLocation();
                         // Toast.makeText(getApplicationContext(), routeStrings.toString(), Toast.LENGTH_LONG).show();
 
+         //               Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
+
+
                 }
             }
         });
-//        getLocation();
     }
 
 
@@ -162,7 +167,6 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
      */
     private Point getCurrentPoint() {
         // Counter pointing to the routeStrings (i.e. Strings containing step-by-step navigation)
-        // SHOULD WE RESET IT EVERY TIME?
         int routeListCounter = 0;
 
         // Clear next3Points every time the method is called
@@ -210,11 +214,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                             // Check if the point being added to next3Points is the same as the head of the queue
                             navPoint = next3Points.get(next3Points.size() - 1);
                             if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
-                                speech = routeStrings.get(0);
-                                Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
-//                                speakOut();
-                                textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
-                                navigationQueue.removeFirst();
+                                speakOut();
                             }
                             destReached = true;
                             break;
@@ -223,11 +223,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         // Check if the point being added to next3Points is the same as the head of the queue
                         navPoint = next3Points.get(next3Points.size() - 1);
                         if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
-                            speech = routeStrings.get(0);
-                            Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
-//                            speakOut();
-                            textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
-                            navigationQueue.removeFirst();
+                            speakOut();
                         }
                         counter++;
                         if (counter == 3 || next3Points.size() == 3) {
@@ -253,11 +249,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                     // Check if the point being added to next3Points is the same as the head of the queue
                     navPoint = next3Points.get(next3Points.size() - 1);
                     if (navPoint.toString().equalsIgnoreCase(navigationQueue.peek().toString())) {
-                        speech = routeStrings.get(0);
-                        Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
-//                        speakOut();
-                        textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
-                        navigationQueue.removeFirst();
+                        speakOut();
                     }
                 }
             } catch (Exception ignored) {
@@ -298,7 +290,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
             ex.printStackTrace();
         }
 
-        Toast.makeText(getApplicationContext(), "Current Point: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Current Point: " + convertPointToParkingSlot(), Toast.LENGTH_SHORT).show();
         return lastKnownLocation;
     }
 
@@ -524,11 +516,17 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         String direction = start.getDirection();
         int distance;
         int lastElement;
-        if (direction.equals("southwest")) {
+        if (direction.equalsIgnoreCase("southwest")) {
             if (end.getY() == 4) {
                 direction = "south";
             } else {
                 direction = "west";
+            }
+        } else if (direction.equalsIgnoreCase("northeast")) {
+            if (end.getY() == 7) {
+                direction = "north";
+            } else {
+                direction = "east";
             }
         }
 
@@ -546,7 +544,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
             // If the direction of the previous route string and the current is the same,
             // Add the distances.
             // For example, "Go 9 meters west" and "Go 9 meters west" becomes "Go 18 meters west"
-            if (dir.equals(direction)) {
+            if (dir.equalsIgnoreCase(direction)) {
                 distance += previousDistance;
                 route = lastRoute.replace(String.valueOf(previousDistance), String.valueOf(distance));
                 routeStrings.remove(lastElement);
@@ -609,24 +607,13 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         chkPointMap.put("26,4", 6);
         chkPointMap.put("26,7", 7);
 
-        // Used to traverse through checkpointArray
-        int counter;
 
-        // To start with, currentPoint is set to lastKnownLocation
-        Point currentPoint = lastKnownLocation;
-
-        // Add start point to navigation queue
-        navigationQueue.addLast(currentPoint);
-
-        // Next checkpoint is obtained from the method by passing the currentPoint
-        Point nextCheckpoint = getNextCheckpoint(currentPoint);
-
-        // Get the distance between currentPoint and nextCheckpoint. This case occurs if the current point
-        // is not one of the checkpoints
-        int distance;
-
-        // Stores each navigation instruction as and when they are computed
-        String route;
+        int counter;                                                // Used to traverse through checkpointArray
+        Point currentPoint = lastKnownLocation;                     // To start with, currentPoint is set to lastKnownLocation
+        navigationQueue.addLast(currentPoint);                      // Add start point to navigation queue
+        Point nextCheckpoint = getNextCheckpoint(currentPoint);     // Next checkpoint is obtained from the method by passing the currentPoint
+        int distance;                                               // Get the distance between currentPoint and nextCheckpoint.
+        String route;                                               // Stores each navigation instruction as and when they are computed
 
         // Get position of the next checkpoint from the checkpoint hashmap
         counter = chkPointMap.get(nextCheckpoint.toString());
@@ -674,7 +661,6 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         Point nextCheckpoint = new Point(0, 0);
         // If y coordinate is more than 5, the next checkpoint will be in the right half of the parking lot.
         // Else, left half.
-        //
 
         if(intersection(currentPoint)) {
             if(currentPoint.getY() == destinationPoint.getY()){
@@ -749,13 +735,22 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
 
         return getNearestNavCell(point);
     }
+
+
+    /**
+     * Check if the point is an intersection point. That is, (1,4) or (26,7)
+     * @param intersect intersection point
+     * @return true if intersection point. Else, false
+     */
     public boolean intersection(Point intersect){
 
         int x = intersect.getX();
         int y = intersect.getY();
-        return (x == 1) && (y == 4);
+        return ((x == 1) && (y == 4) || (x == 26) && (y == 7));
     }
-
+    public String convertPointToParkingSlot(){
+        return numbers[lastKnownLocation.getX()*GRID_COLUMNS + lastKnownLocation.getY() - 1];
+    }
 
     /**
      * Given the direction pair, retrieve an array of x or y coordinates
@@ -788,6 +783,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         return null;
     }
 
+
     @Override
     public void onInit(int status) {
 
@@ -799,15 +795,14 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                     || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TextToSpeech", "This Language is not supported");
             } else {
-
                 // speakOut();
             }
 
         } else {
             Log.e("TextToSpeech", "Initilization Failed!");
         }
-
     }
+
 
     @Override
     public void onDestroy() {
@@ -819,12 +814,13 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         super.onDestroy();
     }
 
+
     private  void speakOut(){
-
-        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
-
+        speech = routeStrings.get(0);
+        Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
+        textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
+        navigationQueue.removeFirst();
     }
-
 }
 
 
