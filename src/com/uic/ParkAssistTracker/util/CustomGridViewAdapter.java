@@ -12,6 +12,8 @@ import com.uic.ParkAssistTracker.R;
 /**
  * Created by AMAN on 3/13/14.
  */
+
+
 public class CustomGridViewAdapter extends BaseAdapter {
 
     private Context context;
@@ -42,22 +44,28 @@ public class CustomGridViewAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-//        View gridView;
+        View gridView = null;
+        //TextView tv;
 
-//            gridView = inflater.inflate(R.layout.fingerprintlayout, null);
-            convertView = inflater.inflate(R.layout.fingerprintlayout, null);
-
-/*
+        if(convertView == null) {
+            gridView = inflater.inflate(R.layout.fingerprintlayout, null);
+            //  convertView = inflater.inflate(R.layout.fingerprintlayout , parent ,false);
+        }
         else {
             gridView = (View) convertView;
-            convertView = (TextView)convertView.getTag(R.id.textView);
         }
-*/
-        TextView tv = (TextView)convertView.findViewById(R.id.textView);
+        assert gridView != null;
+        // tv = (TextView)gridView.findViewById(R.id.textView);
+        final  TextView tv = (TextView)gridView.findViewById(R.id.textView);
         tv.setText(gridV[position]);
-        if(position == Beacon.beacon){
-       convertView.setBackgroundColor(Color.BLUE);
-        }
-        return convertView;
+
+        return gridView;
     }
+
+
+    static class ViewHolder{
+        TextView text;
+
+    }
+
 }

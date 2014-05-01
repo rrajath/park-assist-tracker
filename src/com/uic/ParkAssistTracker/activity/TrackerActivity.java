@@ -17,6 +17,8 @@ import com.uic.ParkAssistTracker.util.Beacon;
 import com.uic.ParkAssistTracker.util.CustomGridViewAdapter;
 import com.uic.ParkAssistTracker.util.Point;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.*;
 
 public class TrackerActivity extends Activity implements TextToSpeech.OnInitListener {
@@ -94,7 +96,11 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         // Fix the start and destination points
                         destinationPoint = isCheckpoint(parkCell);
                         Point tmpPoint = destinationPoint;
+
                         nextDirection.clear();
+                        routeStrings.clear();
+                        navigationQueue.clear();
+
                         if(destinationPoint.getY() == 7 && destinationPoint.getX() != 1 ){
                             destinationPoint = new Point(26 ,4 ,"east");
                             calculateRoute(destinationPoint);
@@ -103,8 +109,6 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         }
                         calculateRoute(destinationPoint);
                         Point startPoint = getCurrentPoint();   // Get the value of this from GeoFencing
-                        routeStrings.clear();
-                        navigationQueue.clear();
                         // Calculate the route for start and end points
 /*
                         calculateRoute(startPoint, destinationPoint);
@@ -133,10 +137,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         // SHOULD WE RESET IT EVERY TIME?
         routeListCounter = 0;
 
-        textToSpeech.speak("Go 5 meters North", TextToSpeech.QUEUE_ADD, null);
-        textToSpeech.speak("Go 5 meters South", TextToSpeech.QUEUE_ADD, null);
-        textToSpeech.speak("Go 5 meters East", TextToSpeech.QUEUE_ADD, null);
-        textToSpeech.speak("Go 5 meters West", TextToSpeech.QUEUE_ADD, null);
+
 
         // Clear next3Points every time the method is called
         next3Points.clear();
@@ -235,7 +236,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                         speech = routeStrings.get(0);
                         Toast.makeText(getApplicationContext(), routeStrings.remove(0), Toast.LENGTH_LONG).show();
 //                        speakOut();
-                         textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
+                        textToSpeech.speak(speech, TextToSpeech.QUEUE_ADD, null);
                         navigationQueue.removeFirst();
                     }
                 }
@@ -263,8 +264,24 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         lastKnownLocation = getLocation(); // The current location obtained by matching the next 3 feature points
 //        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
         Beacon.beacon = lastKnownLocation.getX()*GRID_COLUMNS + lastKnownLocation.getY();
+        String filename = "";
+        String path = getApplicationContext().getExternalFilesDir(null).getAbsolutePath();
+        String data = lastKnownLocation.getX()+ "," + lastKnownLocation.getY() + "," + lastKnownLocation.getDirection();
+        try {
+            filename = path + "/" + "lastknownlocation" + ".txt";
+            File file = new File(filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(data.getBytes());
+            fileOutputStream.close();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
 
-        Toast.makeText(getApplicationContext(), "RESULT: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
+
+        }
+
+
+        Toast.makeText(getApplicationContext(), "Current Point: " + lastKnownLocation.toString(), Toast.LENGTH_SHORT).show();
         return lastKnownLocation;
     }
 
@@ -353,7 +370,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
             for (Map.Entry<String, Integer> entry : sortedMap.entrySet()){
                 result += entry.getKey() + " " + entry.getValue().toString() + "\n";
             }
-//            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
 
         } else {
             // If hmCordMap is empty. This will happen when none of the coordinates match or if xy is null.
@@ -775,7 +792,7 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
                 Log.e("TextToSpeech", "This Language is not supported");
             } else {
 
-               // speakOut();
+                // speakOut();
             }
 
         } else {
@@ -794,13 +811,13 @@ public class TrackerActivity extends Activity implements TextToSpeech.OnInitList
         super.onDestroy();
     }
 
-        private  void speakOut(){
+    private  void speakOut(){
 
-              textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
-
-        }
+        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
 
     }
+
+}
 
 
 
